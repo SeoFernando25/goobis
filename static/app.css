@@ -1,0 +1,9 @@
+/* Reset html borders */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  /* Hide scroll bars */
+  overflow: hidden;
+}
