@@ -56,7 +56,7 @@
 
   //   Bind Ctrl-z to pop
   function onKeyDown(event: KeyboardEvent) {
-    if (event.ctrlKey && event.key === "z") {
+    if (event.ctrlKey && event.key.toLowerCase() === "z") {
       lines.pop();
     }
   }
