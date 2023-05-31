@@ -1,13 +1,22 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { listen } from "svelte/internal";
 
   let canvas: HTMLCanvasElement;
 
-  let points: { x: number; y: number }[] = [];
+  interface Lines {
+    x: number;
+    y: number;
+    endX?: number;
+    endY?: number;
+    lineThickness?: number;
+  }
+
+  let lines: Lines[] = [];
 
   let width = 450;
   let height = 450;
-  let pixelRatio = 1;
+  let lineThickness = 1;
 
   onMount(() => {
     const ctx = canvas.getContext("2d");
@@ -16,68 +25,76 @@
     }
   });
 
-  //   function onMouseMove(event: MouseEvent) {
-  //     const ctx = canvas.getContext("2d");
-  //     if (ctx) {
-
-  //       // Draw a circle centered on the mouse
-  //       ctx.fillStyle = "red";
-  //       ctx.beginPath();
-
-  //       //   Canvas coordinates are different from mouse coordinates
-
-  //       ctx.arc(event.clientX, event.clientY, 10, 0, 2 * Math.PI);
-  //       ctx.fill();
-  //     }
-  //   }
   function onMouseDown(event: MouseEvent) {
-    points.push({ x: event.clientX, y: event.clientY });
+    lines.push({ x: event.clientX, y: event.clientY, lineThickness });
+  }
 
-    console.log("mouse down");
-    // Draw a circle centered on the mouse
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-      console.log("painting");
-      ctx.fillStyle = "red";
-      ctx.beginPath();
-
-      //   Canvas coordinates are different from mouse coordinates
-
-      ctx.arc(event.clientX, event.clientY, 10, 0, 2 * Math.PI);
-      ctx.fill();
-    }
+  function onMouseUp(event: MouseEvent) {
+    lines[lines.length - 1].endX = event.clientX;
+    lines[lines.length - 1].endY = event.clientY;
   }
 
   function draw() {
     // Draw points
     const ctx = canvas.getContext("2d");
     if (ctx) {
-      ctx.fillStyle = "red";
-      ctx.beginPath();
+      // Clear screen
+      ctx.clearRect(0, 0, width, height);
 
-      //   Canvas coordinates are different from mouse coordinates
-      points.forEach((point) => {
-        ctx.arc(point.x, point.y, 10, 0, 2 * Math.PI);
-        ctx.fill();
-      });
+      //   Draw lines
+      //   Set line thickness
+      for (let i = 0; i < lines.length; i++) {
+        ctx.beginPath();
+        ctx.lineWidth = lines[i].lineThickness ?? 1;
+        ctx.moveTo(lines[i].x, lines[i].y);
+        ctx.lineTo(lines[i].endX ?? lines[i].x, lines[i].endY ?? lines[i].y);
+        ctx.stroke();
+      }
     }
     requestAnimationFrame(draw);
   }
+
+  //   Bind Ctrl-z to pop
+  function onKeyDown(event: KeyboardEvent) {
+    if (event.ctrlKey && event.key === "z") {
+      lines.pop();
+    }
+  }
 </script>
 
-<svelte:window bind:innerWidth="{width}" bind:innerHeight="{height}" />
+<svelte:window
+  bind:innerWidth="{width}"
+  bind:innerHeight="{height}"
+  on:keydown="{onKeyDown}"
+/>
+
+<!-- Range slider -->
+<div class="float-thingy">
+  <input type="range" min="1" max="10" step="1" bind:value="{lineThickness}" />
+  <p>Line Thickness: {lineThickness}</p>
+</div>
 
 <!-- on:mousemove="{onMouseMove}" -->
 <canvas
   bind:this="{canvas}"
-  width="{width * pixelRatio}"
-  height="{height * pixelRatio}"
+  width="{width}"
+  height="{height}"
   class="fs"
-  on:mousedown="{onMouseDown}"></canvas>
+  on:mousedown="{onMouseDown}"
+  on:mouseup="{onMouseUp}"></canvas>
 
 <style>
   .fs {
     width: 100%;
     height: 100%;
+  }
+
+  .float-thingy {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    background-color: white;
+    padding: 10px;
   }
 </style>
