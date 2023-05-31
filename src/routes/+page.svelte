@@ -25,19 +25,64 @@
     }
   });
 
+  let touching = false;
+
   function onMouseDown(event: MouseEvent) {
+    touching = true;
     lines.push({ x: event.clientX, y: event.clientY, lineThickness });
   }
 
+  function onMouseMove(event: MouseEvent) {
+    if (touching) {
+      lines[lines.length - 1].endX = event.clientX;
+      lines[lines.length - 1].endY = event.clientY;
+    }
+  }
+
   function onMouseUp(event: MouseEvent) {
+    touching = false;
     lines[lines.length - 1].endX = event.clientX;
     lines[lines.length - 1].endY = event.clientY;
+  }
+
+  function onTouchStart(event: TouchEvent) {
+    touching = true;
+    lines.push({
+      x: event.touches[0].clientX,
+      y: event.touches[0].clientY,
+      lineThickness,
+    });
+  }
+
+  function onTouchMove(event: TouchEvent) {
+    if (touching) {
+      lines[lines.length - 1].endX = event.touches[0].clientX;
+      lines[lines.length - 1].endY = event.touches[0].clientY;
+    }
+  }
+
+  function onTouchEnd(event: TouchEvent) {
+    touching = false;
+    lines[lines.length - 1].endX = event.changedTouches[0].clientX;
+    lines[lines.length - 1].endY = event.changedTouches[0].clientY;
   }
 
   function draw() {
     // Draw points
     const ctx = canvas.getContext("2d");
     if (ctx) {
+      if (touching) {
+        // Draw preview line
+        ctx.beginPath();
+        ctx.lineWidth = lineThickness;
+        ctx.moveTo(lines[lines.length - 1].x, lines[lines.length - 1].y);
+        ctx.lineTo(
+          lines[lines.length - 1].endX ?? lines[lines.length - 1].x,
+          lines[lines.length - 1].endY ?? lines[lines.length - 1].y
+        );
+        ctx.stroke();
+      }
+
       // Clear screen
       ctx.clearRect(0, 0, width, height);
 
@@ -80,8 +125,12 @@
   width="{width}"
   height="{height}"
   class="fs"
-  on:pointerdown="{onMouseDown}"
-  on:pointerdown="{onMouseUp}"></canvas>
+  on:touchstart="{onTouchStart}"
+  on:touchmove="{onTouchMove}"
+  on:touchend="{onTouchEnd}"
+  on:mousedown="{onMouseDown}"
+  on:mousemove="{onMouseMove}"
+  on:mouseup="{onMouseUp}"></canvas>
 
 <style>
   .fs {
