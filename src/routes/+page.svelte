@@ -80,8 +80,8 @@
   width="{width}"
   height="{height}"
   class="fs"
-  on:mousedown="{onMouseDown}"
-  on:mouseup="{onMouseUp}"></canvas>
+  on:pointerdown="{onMouseDown}"
+  on:pointerdown="{onMouseUp}"></canvas>
 
 <style>
   .fs {
