@@ -12,7 +12,7 @@
     lineThickness?: number;
   }
 
-  let lines: Lines[] = [];
+  let lines: Lines[] = []; // Array of lines
 
   let width = 450;
   let height = 450;
